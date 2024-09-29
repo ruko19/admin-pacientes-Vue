@@ -1,6 +1,6 @@
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive,watch, onMounted } from 'vue';
 import { uid } from 'uid';
 import Header from './components/Header.vue'
 import Formulario from './components/Formulario.vue'
@@ -11,22 +11,43 @@ const pacientes = ref([]);
 const paciente = reactive({
     id: null,
     nombre: '',
-    propitario: '',
+    propietario: '',
     email: '',
     alta:'',
     sintomas:''
 
 });
 
+watch(pacientes, ()=>{
+  guardarLocalStorage()
+}, {
+  deep:true
+})
+
+const guardarLocalStorage = () => {
+  localStorage.setItem('pacientes',  JSON.stringify(pacientes.value))
+}
+
+onMounted(()=>{
+  const pacientesStorage = localStorage.getItem('pacientes')
+  if(pacientesStorage){
+    pacientes.value = JSON.parse(pacientesStorage)
+  }
+})
+
 const agregarPaciente = ()=>{
 
   if(paciente.id){
     const {id} = paciente
-    const i = paciente.value.findIndex((pacienteState)=> pacienteState.id === id)
-    paciente.value[i] = {...paciente}
+    const i = pacientes.value.findIndex(pacienteState => pacienteState.id === id)
+    console.log(i);
+    
+    pacientes.value[i] = {...paciente}
      
   }else {
     pacientes.value.push({...paciente, id: uid()})
+    
+    
     
   }
 
@@ -34,7 +55,7 @@ const agregarPaciente = ()=>{
 
   // reiniciar el objeto
   paciente.nombre = ''
-  paciente.propitario = ''
+  paciente.propietario = ''
   paciente.email = ''
   paciente.alta = ''
   paciente.sintomas = ''
@@ -45,9 +66,16 @@ const agregarPaciente = ()=>{
 
 const actualizarPaciente = (id) => {
   const pacienteEditar = pacientes.value.filter( paciente => paciente.id === id)[0]
-  
+
     Object.assign(paciente, pacienteEditar)
   
+}
+
+const eliminarPaciente = (id) =>{
+
+  pacientes.value = pacientes.value.filter(pacienteState => pacienteState.id != id)
+  
+
 }
 
 </script>
@@ -60,11 +88,13 @@ const actualizarPaciente = (id) => {
       <Formulario
 
         v-model:nombre="paciente.nombre"
-        v-model:propietario="paciente.propitario"
+        v-model:propietario="paciente.propietario"
         v-model:email="paciente.email"
         v-model:alta="paciente.alta"
         v-model:sintomas="paciente.sintomas"
         @agregar-paciente="agregarPaciente"
+        
+        :id="paciente.id"
       
       />
 
@@ -85,6 +115,7 @@ const actualizarPaciente = (id) => {
           :paciente="paciente"
           :key="paciente.id"
           @actualizar-paciente="actualizarPaciente"
+          @eliminar-paciente="eliminarPaciente"
        
           
           />
