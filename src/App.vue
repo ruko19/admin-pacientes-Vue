@@ -18,6 +18,9 @@ const paciente = reactive({
 
 });
 
+
+
+
 watch(pacientes, ()=>{
   guardarLocalStorage()
 }, {
@@ -46,8 +49,6 @@ const agregarPaciente = ()=>{
      
   }else {
     pacientes.value.push({...paciente, id: uid()})
-    
-    
     
   }
 
